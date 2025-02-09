@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS students (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
 -- Create check_ins table
 CREATE TABLE IF NOT EXISTS check_ins (
     check_in_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS check_ins (
     device_id VARCHAR(255),
     FOREIGN KEY (student_id) REFERENCES students(student_id)
 );
+
 -- Create view for leaderboard
 CREATE OR REPLACE VIEW leaderboard AS
 SELECT s.student_id,
