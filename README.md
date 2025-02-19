@@ -1,6 +1,6 @@
 # Library RFID Management System
 
-A modern web-based RFID library management system that helps track student visits to the library using RFID cards. This system provides real-time check-ins, visit logging, and analytics.
+A modern web-based RFID library management system that helps track student visits to the library using RFID cards. This system provides real-time check-ins, visit logging, and analytics. v2.0
 
 ## 📋 Table of Contents
 
