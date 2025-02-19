@@ -15,19 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleCheckIn(rfidNumber) {
         const currentTime = Date.now();
         if (currentTime - lastScanTime < SCAN_COOLDOWN) {
+            showToast('Please wait before scanning again', 'error');
             return;
         }
         lastScanTime = currentTime;
 
         try {
+            // Validate RFID
+            if (!rfidNumber || rfidNumber.length < 8) {
+                throw new Error('Invalid RFID number. Must be at least 8 characters.');
+            }
+
             // Update status
             scanStatus.textContent = 'Processing...';
             scanResult.classList.add('hidden');
-
-            // Validate RFID
-            if (!rfidNumber) {
-                throw new Error('Invalid RFID number');
-            }
 
             // Make API request
             const response = await fetch(API_ENDPOINTS.checkIn.create, {
@@ -42,8 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     check_in_time: new Date().toISOString()
                 })
             });
-
-            console.log(response)
 
             // Parse response
             let data;
@@ -94,10 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Show error toast
             showToast(error.message || 'Failed to check in', 'error');
-            
-            // Clear input
-            rfidInput.value = '';
-            rfidInput.focus();
         }
 
         // Reset status after delay
@@ -108,30 +103,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    // Handle input event
-    rfidInput.addEventListener('input', (e) => {
-        const rfidNumber = e.target.value.trim();
-        if (rfidNumber.length >= 8) {
-            handleCheckIn(rfidNumber);
-        }
+    // Create a form wrapper for the RFID input
+    const scannerForm = document.createElement('form');
+    scannerForm.className = 'scanner-input';
+    rfidInput.parentNode.replaceChild(scannerForm, rfidInput);
+    scannerForm.appendChild(rfidInput);
+    scannerForm.appendChild(scanButton);
+
+    // Handle form submission
+    scannerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const rfidNumber = rfidInput.value.trim();
+        handleCheckIn(rfidNumber);
     });
 
-    // Handle scan button click
-    scanButton.addEventListener('click', () => {
-        const rfidNumber = rfidInput.value.trim();
-        if (rfidNumber) {
-            handleCheckIn(rfidNumber);
-        } else {
-            scanStatus.textContent = 'Please enter an RFID number';
-            scanStatus.style.backgroundColor = 'var(--danger-color)';
-            scanStatus.style.color = 'white';
-            setTimeout(() => {
-                scanStatus.textContent = 'Ready to scan';
-                scanStatus.style.backgroundColor = 'var(--background-color)';
-                scanStatus.style.color = 'var(--text-primary)';
-            }, 3000);
-        }
-    });
+    // Remove the input event listener and only handle button click through form submission
+    scanButton.type = 'submit';
 
     // Load Leaderboard
     async function loadLeaderboard() {

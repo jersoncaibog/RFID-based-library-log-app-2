@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sectionFilter = document.getElementById('sectionFilter');
     const studentsTableBody = document.getElementById('studentsTableBody');
     const pagination = document.getElementById('pagination');
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteMessage = document.getElementById('deleteMessage');
+    const deleteWarning = document.getElementById('deleteWarning');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const closeDeleteBtn = deleteModal.querySelector('.close-btn');
 
     let currentPage = 1;
     const itemsPerPage = 10;
@@ -65,6 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
     courseFilter.addEventListener('change', filterStudents);
     yearFilter.addEventListener('change', filterStudents);
     sectionFilter.addEventListener('change', filterStudents);
+
+    // Add event listeners for delete modal
+    closeDeleteBtn.addEventListener('click', closeDeleteModal);
+    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
 
     // Functions
     async function loadStudents() {
@@ -242,6 +252,11 @@ document.addEventListener('DOMContentLoaded', () => {
         studentModal.classList.remove('active');
     }
 
+    function closeDeleteModal() {
+        deleteModal.classList.remove('active');
+        deleteModal.dataset.studentId = '';
+    }
+
     // Global functions for table actions
     window.editStudent = async (studentId) => {
         try {
@@ -259,9 +274,40 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.deleteStudent = async (studentId) => {
-        if (!confirm('Are you sure you want to delete this student?')) {
-            return;
+        try {
+            // Get student details including check-in count
+            const response = await fetch(API_ENDPOINTS.students.get(studentId));
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to load student data');
+            }
+
+            const student = data.data;
+            const hasCheckIns = student.check_in_count > 0;
+
+            // Update modal content
+            deleteMessage.textContent = `Are you sure you want to delete ${student.first_name} ${student.last_name}?`;
+            
+            if (hasCheckIns) {
+                deleteWarning.textContent = `This will also delete ${student.check_in_count} check-in record${student.check_in_count > 1 ? 's' : ''} associated with this student.`;
+                deleteWarning.style.display = 'block';
+            } else {
+                deleteWarning.style.display = 'none';
+            }
+
+            // Store student ID and show modal
+            deleteModal.dataset.studentId = studentId;
+            deleteModal.classList.add('active');
+        } catch (error) {
+            handleError(error);
         }
+    };
+
+    // Handle delete confirmation
+    confirmDeleteBtn.addEventListener('click', async () => {
+        const studentId = deleteModal.dataset.studentId;
+        if (!studentId) return;
 
         try {
             const response = await fetch(API_ENDPOINTS.students.delete(studentId), {
@@ -272,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 showToast('Student deleted successfully');
+                closeDeleteModal();
                 loadStudents();
             } else {
                 throw new Error(data.message || 'Failed to delete student');
@@ -279,5 +326,5 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             handleError(error);
         }
-    };
+    });
 }); 

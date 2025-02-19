@@ -77,11 +77,41 @@ class Student {
         let conn;
         try {
             conn = await pool.getConnection();
-            const result = await conn.query(
-                'DELETE FROM students WHERE student_id = ?',
+            await conn.beginTransaction();
+
+            try {
+                // First, delete all check-ins for this student
+                await conn.query(
+                    'DELETE FROM check_ins WHERE student_id = ?',
+                    [id]
+                );
+
+                // Then delete the student
+                const result = await conn.query(
+                    'DELETE FROM students WHERE student_id = ?',
+                    [id]
+                );
+
+                await conn.commit();
+                return result.affectedRows > 0;
+            } catch (err) {
+                await conn.rollback();
+                throw err;
+            }
+        } finally {
+            if (conn) conn.release();
+        }
+    }
+
+    static async getCheckInCount(id) {
+        let conn;
+        try {
+            conn = await pool.getConnection();
+            const [result] = await conn.query(
+                'SELECT COUNT(*) as count FROM check_ins WHERE student_id = ?',
                 [id]
             );
-            return result.affectedRows > 0;
+            return Number(result.count);
         } finally {
             if (conn) conn.release();
         }

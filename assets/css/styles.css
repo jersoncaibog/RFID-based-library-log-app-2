@@ -418,6 +418,39 @@ select:focus {
     margin-bottom: 1.5rem;
 }
 
+.modal-body {
+    margin-bottom: 1.5rem;
+}
+
+.modal-body p {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.text-danger {
+    color: var(--danger-color);
+    font-weight: 500;
+}
+
+.danger-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.danger-button:hover {
+    background-color: #b91c1c;
+}
+
 .close-btn {
     background: none;
     border: none;

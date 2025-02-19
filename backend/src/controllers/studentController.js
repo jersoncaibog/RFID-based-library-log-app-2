@@ -26,9 +26,15 @@ exports.getStudentById = async (req, res) => {
                 message: 'Student not found'
             });
         }
+
+        const checkInCount = await Student.getCheckInCount(req.params.id);
+        
         res.json({
             status: 'success',
-            data: student
+            data: {
+                ...student,
+                check_in_count: checkInCount
+            }
         });
     } catch (err) {
         console.error('Error getting student:', err);
